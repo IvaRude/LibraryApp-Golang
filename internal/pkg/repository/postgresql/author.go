@@ -2,7 +2,6 @@ package postgresql
 
 import (
 	"context"
-	"database/sql"
 
 	"homework-3/internal/pkg/db"
 	"homework-3/internal/pkg/repository"
@@ -24,9 +23,27 @@ func (r *AuthorRepo) Add(ctx context.Context, author *repository.Author) (int64,
 
 func (r *AuthorRepo) GetByID(ctx context.Context, id int64) (*repository.Author, error) {
 	var a repository.Author
-	err := r.db.Get(ctx, &a, "SELECT id,name FROM authors WHERE id=$1", id)
-	if err == sql.ErrNoRows {
+	err := r.db.Get(ctx, &a, "SELECT id,name FROM authors WHERE id=$1;", id)
+	if err != nil {
 		return nil, repository.ErrObjectNotFound
 	}
 	return &a, nil
+}
+
+func (r *AuthorRepo) Update(ctx context.Context, author *repository.Author) error {
+	var id int64
+	err := r.db.ExecQueryRow(ctx, `UPDATE authors SET name = $1 WHERE id = $2 RETURNING id;`, author.Name, author.Id).Scan(&id)
+	if err != nil {
+		return repository.ErrObjectNotFound
+	}
+	return nil
+}
+
+func (r *AuthorRepo) DeleteById(ctx context.Context, id int64) error {
+	var deletedId int64
+	err := r.db.ExecQueryRow(ctx, `DELETE FROM authors WHERE id = $1 RETURNING id;`, id).Scan(&deletedId)
+	if err != nil {
+		return repository.ErrObjectNotFound
+	}
+	return nil
 }
