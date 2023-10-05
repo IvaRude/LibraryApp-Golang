@@ -4,25 +4,19 @@ import (
 	"context"
 	"fmt"
 
+	"homework-3/config"
+
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "postgres"
-	dbname   = "postgres"
-)
-
-func NewDB(ctx context.Context) (*Database, error) {
-	pool, err := pgxpool.Connect(ctx, generateDsn())
+func NewDB(ctx context.Context, config *config.Config) (*Database, error) {
+	pool, err := pgxpool.Connect(ctx, generateDsn(config))
 	if err != nil {
 		return nil, err
 	}
 	return newDatabase(pool), nil
 }
 
-func generateDsn() string {
-	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+func generateDsn(config *config.Config) string {
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", config.Host, config.Port, config.User, config.Password, config.DbName)
 }
