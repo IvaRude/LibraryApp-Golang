@@ -48,3 +48,10 @@
 Нельзя использовать orm или sql билдеры
 Для реализации http сервера можно использовать как net/http так и gin/fasthttp и прочее
 Предметную область выбрать самостоятельно. Можно использовать пост/комментарий
+
+
+**CURL запросы**
+1) ```curl -v -X 'POST' -d '{"name":"Author_1"}' \http://localhost:9000/author```
+2) ```curl -v -X 'GET' \http://localhost:9000/author/1```
+3) ```curl -v -X 'PUT' -d '{"id":1, "name":"Tom"}' \http://localhost:9000/author```
+3) ```curl -v -X 'DELETE' \http://localhost:9000/author/1```
