@@ -27,6 +27,9 @@ func (r *AuthorRepo) GetByID(ctx context.Context, id int64) (*repository.Author,
 	if err != nil {
 		return nil, repository.ErrObjectNotFound
 	}
+	var books []repository.Book
+	err = r.db.Select(ctx, &books, "SELECT id, name, author_id FROM books WHERE author_id=$1;", id)
+	a.Books = books
 	return &a, nil
 }
 
@@ -41,7 +44,7 @@ func (r *AuthorRepo) Update(ctx context.Context, author *repository.Author) erro
 
 func (r *AuthorRepo) DeleteById(ctx context.Context, id int64) error {
 	var deletedId int64
-	err := r.db.ExecQueryRow(ctx, `DELETE FROM authors WHERE id = $1 RETURNING id;`, id).Scan(&deletedId)
+	err := r.db.ExecQueryRow(ctx, `WITH q AS (DELETE FROM books WHERE author_id = $1) DELETE FROM authors WHERE id = $1 RETURNING id;`, id).Scan(&deletedId)
 	if err != nil {
 		return repository.ErrObjectNotFound
 	}

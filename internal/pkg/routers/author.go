@@ -14,11 +14,6 @@ import (
 )
 
 const queryParamKey = "key"
-const (
-	errorNotFound    = "Not Found"
-	errorBadRequest  = "Bad Request"
-	errorServerError = "Server Error"
-)
 
 type addAuthorRequest struct {
 	Name string `json:"name"`
@@ -29,8 +24,8 @@ type updateAuthorRequest struct {
 	Id int64 `json:"id"`
 }
 
-func CreateAuthorRouter(server server.Server) *mux.Router {
-	router := mux.NewRouter()
+func CreateAuthorRouter(router *mux.Router, server server.Server) *mux.Router {
+	// router := mux.NewRouter()
 
 	router.HandleFunc("/author", func(w http.ResponseWriter, req *http.Request) {
 		switch req.Method {
@@ -146,21 +141,5 @@ func DeleteAuthor(s server.Server, w http.ResponseWriter, req *http.Request) {
 		}
 		AnswerError(w, http.StatusInternalServerError)
 		return
-	}
-}
-
-func AnswerError(w http.ResponseWriter, statusCode int) {
-	if statusCode == http.StatusNotFound {
-		w.WriteHeader(http.StatusNotFound)
-		body, _ := json.Marshal(map[string]string{"Error message": errorNotFound})
-		w.Write([]byte(body))
-	} else if statusCode == http.StatusInternalServerError {
-		w.WriteHeader(http.StatusInternalServerError)
-		body, _ := json.Marshal(map[string]string{"Error message": errorServerError})
-		w.Write(body)
-	} else if statusCode == http.StatusBadRequest {
-		w.WriteHeader(http.StatusBadRequest)
-		body, _ := json.Marshal(map[string]string{"Error message": errorBadRequest})
-		w.Write(body)
 	}
 }

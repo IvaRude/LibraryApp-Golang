@@ -9,6 +9,8 @@ import (
 	"homework-3/internal/pkg/server"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 const port = ":9000"
@@ -24,9 +26,14 @@ func main() {
 	defer database.GetPool(ctx).Close()
 
 	authorRepo := postgresql.NewAuthors(database)
+	bookRepo := postgresql.NewBooks(database)
 
-	server := server.Server{AuthorRepo: authorRepo}
-	http.Handle("/", routers.CreateAuthorRouter(server))
+	server := server.Server{AuthorRepo: authorRepo, BookRepo: bookRepo}
+	router := mux.NewRouter()
+	routers.CreateAuthorRouter(router, server)
+	routers.CreateBookSubRouter(router, server)
+	http.Handle("/", router)
+
 	if err := http.ListenAndServe(port, nil); err != nil {
 		log.Fatal(err)
 	}

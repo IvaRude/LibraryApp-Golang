@@ -54,4 +54,8 @@
 1) ```curl -v -X 'POST' -d '{"name":"Author_1"}' \http://localhost:9000/author```
 2) ```curl -v -X 'GET' \http://localhost:9000/author/1```
 3) ```curl -v -X 'PUT' -d '{"id":1, "name":"Tom"}' \http://localhost:9000/author```
-3) ```curl -v -X 'DELETE' \http://localhost:9000/author/1```
+4) ```curl -v -X 'POST' -d '{"name": "Book_1", "author_id": 1}' \http://localhost:9000/book```
+5) ```curl -v -X 'GET' \http://localhost:9000/book/1```
+6) ```curl -v -X 'GET' \http://localhost:9000/author/1```
+7) ```curl -v -X 'DELETE' \http://localhost:9000/author/1```
+8) ```curl -v -X 'GET' \http://localhost:9000/book/1```

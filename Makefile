@@ -11,11 +11,11 @@ MIGRATION_FOLDER=$(INTERNAL_PKG_PATH)/db/migrations
 migration-create:
 	goose -dir "$(MIGRATION_FOLDER)" create "$(name)" sql
 
-.PHONY: test-migration-up
-test-migration-up:
+.PHONY: migration-up
+migration-up:
 	goose -dir "$(MIGRATION_FOLDER)" postgres "$(POSTGRES_SETUP_TEST)" up
 
-.PHONY: test-migration-down
-test-migration-down:
+.PHONY: migration-down
+migration-down:
 	goose -dir "$(MIGRATION_FOLDER)" postgres "$(POSTGRES_SETUP_TEST)" down
 
