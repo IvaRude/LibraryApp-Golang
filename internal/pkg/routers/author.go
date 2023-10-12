@@ -26,8 +26,6 @@ type updateAuthorRequest struct {
 }
 
 func CreateAuthorRouter(router *mux.Router, s server.Server) *mux.Router {
-	// router := mux.NewRouter()
-
 	router.HandleFunc("/author", func(w http.ResponseWriter, req *http.Request) {
 		switch req.Method {
 		case http.MethodPost:
@@ -56,7 +54,6 @@ func CreateAuthor(s server.Server, w http.ResponseWriter, req *http.Request) {
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-
 		return
 	}
 	var unm addAuthorRequest
@@ -98,6 +95,7 @@ func GetAuthor(s server.Server, w http.ResponseWriter, req *http.Request) {
 	authorJson, err := json.Marshal(author)
 	if err != nil {
 		log.Fatal(err)
+		AnswerError(w, http.StatusInternalServerError)
 		return
 	}
 	w.Write(authorJson)

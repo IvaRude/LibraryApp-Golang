@@ -25,8 +25,6 @@ type updateBookRequest struct {
 }
 
 func CreateBookSubRouter(router *mux.Router, s server.Server) *mux.Router {
-	// router := mainRouter.PathPrefix("/book").Subrouter()
-
 	router.HandleFunc("/book", func(w http.ResponseWriter, req *http.Request) {
 		switch req.Method {
 		case http.MethodPost:
@@ -97,6 +95,7 @@ func GetBook(s server.Server, w http.ResponseWriter, req *http.Request) {
 	bookJson, err := json.Marshal(book)
 	if err != nil {
 		log.Fatal(err)
+		AnswerError(w, http.StatusInternalServerError)
 		return
 	}
 	w.Write(bookJson)
