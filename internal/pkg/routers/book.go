@@ -7,6 +7,7 @@ import (
 	"homework-3/internal/pkg/repository"
 	"homework-3/internal/pkg/server"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -23,15 +24,13 @@ type updateBookRequest struct {
 	Id int64 `json:"id"`
 }
 
-func CreateBookSubRouter(router *mux.Router, server server.Server) *mux.Router {
+func CreateBookSubRouter(router *mux.Router, s server.Server) *mux.Router {
 	// router := mainRouter.PathPrefix("/book").Subrouter()
 
 	router.HandleFunc("/book", func(w http.ResponseWriter, req *http.Request) {
 		switch req.Method {
 		case http.MethodPost:
-			CreateBook(server, w, req)
-		case http.MethodPut:
-			// UpdateBook(server, w, req)
+			CreateBook(s, w, req)
 		default:
 			fmt.Println("error")
 		}
@@ -40,9 +39,7 @@ func CreateBookSubRouter(router *mux.Router, server server.Server) *mux.Router {
 	router.HandleFunc(fmt.Sprintf("/book/{%s:[0-9]*}", queryParamKey), func(w http.ResponseWriter, req *http.Request) {
 		switch req.Method {
 		case http.MethodGet:
-			GetBook(server, w, req)
-		case http.MethodDelete:
-			// DeleteAuthor(server, w, req)
+			GetBook(s, w, req)
 		default:
 			fmt.Println("error")
 		}
@@ -97,6 +94,10 @@ func GetBook(s server.Server, w http.ResponseWriter, req *http.Request) {
 		AnswerError(w, http.StatusInternalServerError)
 		return
 	}
-	bookJson, _ := json.Marshal(book)
+	bookJson, err := json.Marshal(book)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 	w.Write(bookJson)
 }

@@ -7,6 +7,7 @@ import (
 	"homework-3/internal/pkg/repository"
 	"homework-3/internal/pkg/server"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -24,15 +25,15 @@ type updateAuthorRequest struct {
 	Id int64 `json:"id"`
 }
 
-func CreateAuthorRouter(router *mux.Router, server server.Server) *mux.Router {
+func CreateAuthorRouter(router *mux.Router, s server.Server) *mux.Router {
 	// router := mux.NewRouter()
 
 	router.HandleFunc("/author", func(w http.ResponseWriter, req *http.Request) {
 		switch req.Method {
 		case http.MethodPost:
-			CreateAuthor(server, w, req)
+			CreateAuthor(s, w, req)
 		case http.MethodPut:
-			UpdateAuthor(server, w, req)
+			UpdateAuthor(s, w, req)
 		default:
 			fmt.Println("error")
 		}
@@ -41,9 +42,9 @@ func CreateAuthorRouter(router *mux.Router, server server.Server) *mux.Router {
 	router.HandleFunc(fmt.Sprintf("/author/{%s:[0-9]*}", queryParamKey), func(w http.ResponseWriter, req *http.Request) {
 		switch req.Method {
 		case http.MethodGet:
-			GetAuthor(server, w, req)
+			GetAuthor(s, w, req)
 		case http.MethodDelete:
-			DeleteAuthor(server, w, req)
+			DeleteAuthor(s, w, req)
 		default:
 			fmt.Println("error")
 		}
@@ -90,10 +91,15 @@ func GetAuthor(s server.Server, w http.ResponseWriter, req *http.Request) {
 			AnswerError(w, http.StatusNotFound)
 			return
 		}
+		log.Fatal(err)
 		AnswerError(w, http.StatusInternalServerError)
 		return
 	}
-	authorJson, _ := json.Marshal(author)
+	authorJson, err := json.Marshal(author)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 	w.Write(authorJson)
 }
 
@@ -119,6 +125,7 @@ func UpdateAuthor(s server.Server, w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		AnswerError(w, http.StatusInternalServerError)
+		log.Fatal(err)
 		return
 	}
 }

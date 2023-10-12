@@ -32,21 +32,3 @@ func (r *BookRepo) GetByID(ctx context.Context, id int64) (*repository.Book, err
 	}
 	return &a, nil
 }
-
-func (r *BookRepo) Update(ctx context.Context, author *repository.Book) error {
-	var id int64
-	err := r.db.ExecQueryRow(ctx, `UPDATE authors SET name = $1 WHERE id = $2 RETURNING id;`, author.Name, author.Id).Scan(&id)
-	if err != nil {
-		return repository.ErrObjectNotFound
-	}
-	return nil
-}
-
-func (r *BookRepo) DeleteById(ctx context.Context, id int64) error {
-	var deletedId int64
-	err := r.db.ExecQueryRow(ctx, `DELETE FROM authors WHERE id = $1 RETURNING id;`, id).Scan(&deletedId)
-	if err != nil {
-		return repository.ErrObjectNotFound
-	}
-	return nil
-}
