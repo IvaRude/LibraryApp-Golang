@@ -9,6 +9,14 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
+type DBops interface {
+	Select(ctx context.Context, dest interface{}, query string, args ...interface{}) error
+	Get(ctx context.Context, dest interface{}, query string, args ...interface{}) error
+	Exec(ctx context.Context, query string, args ...interface{}) (pgconn.CommandTag, error)
+	ExecQueryRow(ctx context.Context, query string, args ...interface{}) pgx.Row
+	GetPool(_ context.Context) *pgxpool.Pool
+}
+
 type Database struct {
 	cluster *pgxpool.Pool
 }

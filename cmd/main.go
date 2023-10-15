@@ -28,10 +28,10 @@ func main() {
 	authorRepo := postgresql.NewAuthors(database)
 	bookRepo := postgresql.NewBooks(database)
 
-	s := server.Server{AuthorRepo: authorRepo, BookRepo: bookRepo}
+	s := server.NewServer(authorRepo, bookRepo)
 	router := mux.NewRouter()
 	routers.CreateAuthorRouter(router, s)
-	routers.CreateBookSubRouter(router, s)
+	routers.CreateBookSubRouter(router, *s)
 	http.Handle("/", router)
 
 	if err := http.ListenAndServe(port, nil); err != nil {

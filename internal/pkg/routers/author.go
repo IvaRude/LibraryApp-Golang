@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,7 +10,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -25,24 +25,52 @@ type updateAuthorRequest struct {
 	Id int64 `json:"id"`
 }
 
-func CreateAuthorRouter(router *mux.Router, s server.Server) *mux.Router {
+func CreateAuthorRouter(router *mux.Router, s *server.Server) *mux.Router {
 	router.HandleFunc("/author", func(w http.ResponseWriter, req *http.Request) {
+		updateAuthorData, status := parseUpdateAuthorRequest(req)
+		if status != http.StatusOK {
+			AnswerError(w, status)
+			return
+		}
 		switch req.Method {
 		case http.MethodPost:
-			CreateAuthor(s, w, req)
+			if status = CreateAuthor(req.Context(), s, updateAuthorData); status != http.StatusOK {
+				AnswerError(w, status)
+			} else {
+				w.WriteHeader(int(status))
+			}
 		case http.MethodPut:
-			UpdateAuthor(s, w, req)
+			if status = UpdateAuthor(req.Context(), s, updateAuthorData); status != http.StatusOK {
+				AnswerError(w, status)
+			} else {
+				w.WriteHeader(int(status))
+			}
 		default:
 			fmt.Println("error")
 		}
 	})
 
 	router.HandleFunc(fmt.Sprintf("/author/{%s:[0-9]*}", queryParamKey), func(w http.ResponseWriter, req *http.Request) {
+		id, status := parseID(req)
+		if status != http.StatusOK {
+			AnswerError(w, status)
+			return
+		}
 		switch req.Method {
 		case http.MethodGet:
-			GetAuthor(s, w, req)
+			authorJson, status := GetAuthor(req.Context(), s, id)
+			if status != http.StatusOK {
+				AnswerError(w, status)
+			} else {
+				w.WriteHeader(int(status))
+				w.Write(authorJson)
+			}
 		case http.MethodDelete:
-			DeleteAuthor(s, w, req)
+			if status = DeleteAuthor(req.Context(), s, id); status != http.StatusOK {
+				AnswerError(w, status)
+			} else {
+				w.WriteHeader(int(status))
+			}
 		default:
 			fmt.Println("error")
 		}
@@ -50,101 +78,68 @@ func CreateAuthorRouter(router *mux.Router, s server.Server) *mux.Router {
 	return router
 }
 
-func CreateAuthor(s server.Server, w http.ResponseWriter, req *http.Request) {
-	body, err := io.ReadAll(req.Body)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	var unm addAuthorRequest
-	if err = json.Unmarshal(body, &unm); err != nil {
-		AnswerError(w, http.StatusInternalServerError)
-		return
-	}
+func CreateAuthor(ctx context.Context, s *server.Server, updateAuthorData *updateAuthorRequest) statusInt {
 	authorRepo := &repository.Author{
-		Name: unm.Name,
+		Name: updateAuthorData.Name,
 	}
-	_, err = s.AuthorRepo.Add(req.Context(), authorRepo)
+	_, err := s.AuthorRepo.Add(ctx, authorRepo)
 	if err != nil {
-		AnswerError(w, http.StatusInternalServerError)
-		return
+		return http.StatusInternalServerError
 	}
+	return http.StatusOK
 }
 
-func GetAuthor(s server.Server, w http.ResponseWriter, req *http.Request) {
-	key, ok := mux.Vars(req)[queryParamKey]
-	if !ok {
-		AnswerError(w, http.StatusBadRequest)
-		return
-	}
-	keyInt, err := strconv.ParseInt(key, 10, 64)
-	if err != nil {
-		AnswerError(w, http.StatusBadRequest)
-		return
-	}
-	author, err := s.AuthorRepo.GetByID(req.Context(), keyInt)
+func GetAuthor(ctx context.Context, s *server.Server, id int64) ([]byte, statusInt) {
+	author, err := s.AuthorRepo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrObjectNotFound) {
-			AnswerError(w, http.StatusNotFound)
-			return
+			return nil, http.StatusNotFound
 		}
 		log.Fatal(err)
-		AnswerError(w, http.StatusInternalServerError)
-		return
+		return nil, http.StatusInternalServerError
 	}
 	authorJson, err := json.Marshal(author)
 	if err != nil {
 		log.Fatal(err)
-		AnswerError(w, http.StatusInternalServerError)
-		return
+		return nil, http.StatusInternalServerError
 	}
-	w.Write(authorJson)
+	return authorJson, http.StatusOK
 }
 
-func UpdateAuthor(s server.Server, w http.ResponseWriter, req *http.Request) {
+func UpdateAuthor(ctx context.Context, s *server.Server, updateAuthorData *updateAuthorRequest) statusInt {
+	authorRepo := &repository.Author{
+		Name: updateAuthorData.Name,
+		Id:   updateAuthorData.Id,
+	}
+	if err := s.AuthorRepo.Update(ctx, authorRepo); err != nil {
+		if errors.Is(err, repository.ErrObjectNotFound) {
+			return http.StatusNotFound
+		}
+		log.Fatal(err)
+		return http.StatusInternalServerError
+	}
+	return http.StatusOK
+}
+
+func DeleteAuthor(ctx context.Context, s *server.Server, id int64) statusInt {
+	err := s.AuthorRepo.DeleteById(ctx, id)
+	if err != nil {
+		if errors.Is(err, repository.ErrObjectNotFound) {
+			return http.StatusNotFound
+		}
+		return http.StatusInternalServerError
+	}
+	return http.StatusOK
+}
+
+func parseUpdateAuthorRequest(req *http.Request) (*updateAuthorRequest, statusInt) {
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
-		AnswerError(w, http.StatusInternalServerError)
-		return
+		return nil, http.StatusBadRequest
 	}
 	var unm updateAuthorRequest
 	if err = json.Unmarshal(body, &unm); err != nil {
-		AnswerError(w, http.StatusInternalServerError)
-		return
+		return nil, http.StatusBadRequest
 	}
-	authorRepo := &repository.Author{
-		Name: unm.Name,
-		Id:   unm.Id,
-	}
-	err = s.AuthorRepo.Update(req.Context(), authorRepo)
-	if err != nil {
-		if errors.Is(err, repository.ErrObjectNotFound) {
-			AnswerError(w, http.StatusNotFound)
-			return
-		}
-		AnswerError(w, http.StatusInternalServerError)
-		log.Fatal(err)
-		return
-	}
-}
-func DeleteAuthor(s server.Server, w http.ResponseWriter, req *http.Request) {
-	key, ok := mux.Vars(req)[queryParamKey]
-	if !ok {
-		AnswerError(w, http.StatusBadRequest)
-		return
-	}
-	keyInt, err := strconv.ParseInt(key, 10, 64)
-	if err != nil {
-		AnswerError(w, http.StatusBadRequest)
-		return
-	}
-	err = s.AuthorRepo.DeleteById(req.Context(), keyInt)
-	if err != nil {
-		if errors.Is(err, repository.ErrObjectNotFound) {
-			AnswerError(w, http.StatusNotFound)
-			return
-		}
-		AnswerError(w, http.StatusInternalServerError)
-		return
-	}
+	return &unm, http.StatusOK
 }
