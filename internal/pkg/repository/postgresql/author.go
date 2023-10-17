@@ -8,16 +8,19 @@ import (
 )
 
 type AuthorRepo struct {
-	db *db.Database
+	db db.DBops
 }
 
-func NewAuthors(database *db.Database) *AuthorRepo {
+func NewAuthors(database db.DBops) *AuthorRepo {
 	return &AuthorRepo{db: database}
 }
 
 func (r *AuthorRepo) Add(ctx context.Context, author *repository.Author) (int64, error) {
 	var id int64
-	err := r.db.ExecQueryRow(ctx, `INSERT INTO authors(name) VALUES($1) RETURNING id;`, author.Name).Scan(&id)
+	err := r.db.Get(ctx, &id, `INSERT INTO authors(name) VALUES($1) RETURNING id;`, author.Name)
+	if err != nil {
+		return 0, err
+	}
 	return id, err
 }
 
@@ -35,7 +38,7 @@ func (r *AuthorRepo) GetByID(ctx context.Context, id int64) (*repository.Author,
 
 func (r *AuthorRepo) Update(ctx context.Context, author *repository.Author) error {
 	var id int64
-	err := r.db.ExecQueryRow(ctx, `UPDATE authors SET name = $1 WHERE id = $2 RETURNING id;`, author.Name, author.Id).Scan(&id)
+	err := r.db.Get(ctx, &id, `UPDATE authors SET name = $1 WHERE id = $2 RETURNING id;`, author.Name, author.Id)
 	if err != nil {
 		return repository.ErrObjectNotFound
 	}
@@ -44,7 +47,7 @@ func (r *AuthorRepo) Update(ctx context.Context, author *repository.Author) erro
 
 func (r *AuthorRepo) DeleteById(ctx context.Context, id int64) error {
 	var deletedId int64
-	err := r.db.ExecQueryRow(ctx, `WITH q AS (DELETE FROM books WHERE author_id = $1) DELETE FROM authors WHERE id = $1 RETURNING id;`, id).Scan(&deletedId)
+	err := r.db.Get(ctx, &deletedId, `WITH q AS (DELETE FROM books WHERE author_id = $1) DELETE FROM authors WHERE id = $1 RETURNING id;`, id)
 	if err != nil {
 		return repository.ErrObjectNotFound
 	}

@@ -7,10 +7,10 @@ import (
 )
 
 type BookRepo struct {
-	db *db.Database
+	db db.DBops
 }
 
-func NewBooks(database *db.Database) *BookRepo {
+func NewBooks(database db.DBops) *BookRepo {
 	return &BookRepo{db: database}
 }
 
