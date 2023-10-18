@@ -94,7 +94,7 @@ func GetBook(s server.Server, w http.ResponseWriter, req *http.Request) {
 	}
 	bookJson, err := json.Marshal(book)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 		AnswerError(w, http.StatusInternalServerError)
 		return
 	}

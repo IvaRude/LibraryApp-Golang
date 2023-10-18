@@ -51,7 +51,7 @@ func CreateAuthorRouter(router *mux.Router, s *server.Server) *mux.Router {
 	})
 
 	router.HandleFunc(fmt.Sprintf("/author/{%s:[0-9]*}", queryParamKey), func(w http.ResponseWriter, req *http.Request) {
-		id, status := parseID(req)
+		id, status := ParseID(req)
 		if status != http.StatusOK {
 			AnswerError(w, status)
 			return
@@ -95,12 +95,12 @@ func GetAuthor(ctx context.Context, s *server.Server, id int64) ([]byte, statusI
 		if errors.Is(err, repository.ErrObjectNotFound) {
 			return nil, http.StatusNotFound
 		}
-		log.Fatal(err)
+		log.Print(err)
 		return nil, http.StatusInternalServerError
 	}
 	authorJson, err := json.Marshal(author)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 		return nil, http.StatusInternalServerError
 	}
 	return authorJson, http.StatusOK
@@ -115,7 +115,7 @@ func UpdateAuthor(ctx context.Context, s *server.Server, updateAuthorData *updat
 		if errors.Is(err, repository.ErrObjectNotFound) {
 			return http.StatusNotFound
 		}
-		log.Fatal(err)
+		log.Print(err)
 		return http.StatusInternalServerError
 	}
 	return http.StatusOK

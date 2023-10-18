@@ -9,7 +9,7 @@ import (
 
 type statusInt int
 
-func parseID(req *http.Request) (int64, statusInt) {
+func ParseID(req *http.Request) (int64, statusInt) {
 	id, ok := mux.Vars(req)[queryParamKey]
 	if !ok {
 		return 0, http.StatusBadRequest
