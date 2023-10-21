@@ -1,4 +1,4 @@
-package repository
+package models
 
 type Author struct {
 	Id    int64  `db:"id"`

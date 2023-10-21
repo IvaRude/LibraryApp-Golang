@@ -6,7 +6,7 @@ package mock_repository
 
 import (
 	context "context"
-	repository "homework-3/internal/pkg/repository"
+	models "homework-3/internal/pkg/models"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -36,7 +36,7 @@ func (m *MockAuthorsRepo) EXPECT() *MockAuthorsRepoMockRecorder {
 }
 
 // Add mocks base method.
-func (m *MockAuthorsRepo) Add(ctx context.Context, author *repository.Author) (int64, error) {
+func (m *MockAuthorsRepo) Add(ctx context.Context, author *models.Author) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Add", ctx, author)
 	ret0, _ := ret[0].(int64)
@@ -65,10 +65,10 @@ func (mr *MockAuthorsRepoMockRecorder) DeleteById(ctx, id interface{}) *gomock.C
 }
 
 // GetByID mocks base method.
-func (m *MockAuthorsRepo) GetByID(ctx context.Context, id int64) (*repository.Author, error) {
+func (m *MockAuthorsRepo) GetByID(ctx context.Context, id int64) (*models.Author, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByID", ctx, id)
-	ret0, _ := ret[0].(*repository.Author)
+	ret0, _ := ret[0].(*models.Author)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -80,7 +80,7 @@ func (mr *MockAuthorsRepoMockRecorder) GetByID(ctx, id interface{}) *gomock.Call
 }
 
 // Update mocks base method.
-func (m *MockAuthorsRepo) Update(ctx context.Context, author *repository.Author) error {
+func (m *MockAuthorsRepo) Update(ctx context.Context, author *models.Author) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", ctx, author)
 	ret0, _ := ret[0].(error)
@@ -117,7 +117,7 @@ func (m *MockBooksRepo) EXPECT() *MockBooksRepoMockRecorder {
 }
 
 // Add mocks base method.
-func (m *MockBooksRepo) Add(ctx context.Context, book *repository.Book) (int64, error) {
+func (m *MockBooksRepo) Add(ctx context.Context, book *models.Book) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Add", ctx, book)
 	ret0, _ := ret[0].(int64)
@@ -132,10 +132,10 @@ func (mr *MockBooksRepoMockRecorder) Add(ctx, book interface{}) *gomock.Call {
 }
 
 // GetByID mocks base method.
-func (m *MockBooksRepo) GetByID(ctx context.Context, id int64) (*repository.Book, error) {
+func (m *MockBooksRepo) GetByID(ctx context.Context, id int64) (*models.Book, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByID", ctx, id)
-	ret0, _ := ret[0].(*repository.Book)
+	ret0, _ := ret[0].(*models.Book)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

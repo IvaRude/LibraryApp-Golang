@@ -1,16 +1,16 @@
 package fixtures
 
 import (
-	"homework-3/internal/pkg/repository"
+	"homework-3/internal/pkg/models"
 	"homework-3/tests/states"
 )
 
 type AuthorBuilder struct {
-	instance *repository.Author
+	instance *models.Author
 }
 
 func Author() *AuthorBuilder {
-	return &AuthorBuilder{instance: &repository.Author{}}
+	return &AuthorBuilder{instance: &models.Author{}}
 }
 
 func (b *AuthorBuilder) ID(v int64) *AuthorBuilder {
@@ -22,11 +22,11 @@ func (b *AuthorBuilder) Name(v string) *AuthorBuilder {
 	return b
 }
 
-func (b *AuthorBuilder) P() *repository.Author {
+func (b *AuthorBuilder) P() *models.Author {
 	return b.instance
 }
 
-func (b *AuthorBuilder) V() repository.Author {
+func (b *AuthorBuilder) V() models.Author {
 	return *b.instance
 }
 

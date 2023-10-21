@@ -11,7 +11,7 @@ const (
 	errorServerError = "Server Error"
 )
 
-func AnswerError(w http.ResponseWriter, statusCode statusInt) {
+func AnswerError(w http.ResponseWriter, statusCode StatusInt) {
 	if statusCode == http.StatusNotFound {
 		w.WriteHeader(http.StatusNotFound)
 		body, _ := json.Marshal(map[string]string{"Error message": errorNotFound})

@@ -2,14 +2,9 @@ package routers
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"homework-3/internal/pkg/repository"
-	"homework-3/internal/pkg/server"
 	"io"
-	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -19,25 +14,45 @@ type addBookRequest struct {
 	AuthorId int64  `json:"author_id"`
 }
 
-type updateBookRequest struct {
+type UpdateBookRequest struct {
 	addBookRequest
 	Id int64 `json:"id"`
 }
 
-func CreateBookSubRouter(router *mux.Router, s server.Server) *mux.Router {
+func CreateBookSubRouter(router *mux.Router, libraryApp LibraryApp) *mux.Router {
 	router.HandleFunc("/book", func(w http.ResponseWriter, req *http.Request) {
+		updateBookData, status := parseUpdateBookRequest(req)
+		if status != http.StatusOK {
+			AnswerError(w, status)
+			return
+		}
 		switch req.Method {
 		case http.MethodPost:
-			CreateBook(s, w, req)
+			if status = libraryApp.CreateBook(req.Context(), updateBookData); status != http.StatusOK {
+				AnswerError(w, status)
+			} else {
+				w.WriteHeader(int(status))
+			}
 		default:
 			fmt.Println("error")
 		}
 	})
 
 	router.HandleFunc(fmt.Sprintf("/book/{%s:[0-9]*}", queryParamKey), func(w http.ResponseWriter, req *http.Request) {
+		id, status := ParseID(req)
+		if status != http.StatusOK {
+			AnswerError(w, status)
+			return
+		}
 		switch req.Method {
 		case http.MethodGet:
-			GetBook(s, w, req)
+			bookJson, status := libraryApp.GetBook(req.Context(), id)
+			if status != http.StatusOK {
+				AnswerError(w, status)
+			} else {
+				w.WriteHeader(int(status))
+				w.Write(bookJson)
+			}
 		default:
 			fmt.Println("error")
 		}
@@ -45,58 +60,14 @@ func CreateBookSubRouter(router *mux.Router, s server.Server) *mux.Router {
 	return router
 }
 
-func CreateBook(s server.Server, w http.ResponseWriter, req *http.Request) {
+func parseUpdateBookRequest(req *http.Request) (*UpdateBookRequest, StatusInt) {
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-
-		return
+		return nil, http.StatusBadRequest
 	}
-	var unm addBookRequest
+	var unm UpdateBookRequest
 	if err = json.Unmarshal(body, &unm); err != nil {
-		AnswerError(w, http.StatusInternalServerError)
-		return
+		return nil, http.StatusBadRequest
 	}
-	bookRepo := &repository.Book{
-		Name:     unm.Name,
-		AuthorId: unm.AuthorId,
-	}
-	_, err = s.BookRepo.Add(req.Context(), bookRepo)
-	if err != nil {
-		if errors.Is(err, repository.ErrObjectNotFound) {
-			AnswerError(w, http.StatusNotFound)
-			return
-		}
-		AnswerError(w, http.StatusInternalServerError)
-		return
-	}
-}
-
-func GetBook(s server.Server, w http.ResponseWriter, req *http.Request) {
-	key, ok := mux.Vars(req)[queryParamKey]
-	if !ok {
-		AnswerError(w, http.StatusBadRequest)
-		return
-	}
-	keyInt, err := strconv.ParseInt(key, 10, 64)
-	if err != nil {
-		AnswerError(w, http.StatusBadRequest)
-		return
-	}
-	book, err := s.BookRepo.GetByID(req.Context(), keyInt)
-	if err != nil {
-		if errors.Is(err, repository.ErrObjectNotFound) {
-			AnswerError(w, http.StatusNotFound)
-			return
-		}
-		AnswerError(w, http.StatusInternalServerError)
-		return
-	}
-	bookJson, err := json.Marshal(book)
-	if err != nil {
-		log.Print(err)
-		AnswerError(w, http.StatusInternalServerError)
-		return
-	}
-	w.Write(bookJson)
+	return &unm, http.StatusOK
 }

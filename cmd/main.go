@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"homework-3/config"
+	"homework-3/internal/pkg/app"
 	"homework-3/internal/pkg/db"
 	"homework-3/internal/pkg/repository/postgresql"
 	"homework-3/internal/pkg/routers"
-	"homework-3/internal/pkg/server"
 	"log"
 	"net/http"
 
@@ -28,10 +28,10 @@ func main() {
 	authorRepo := postgresql.NewAuthors(database)
 	bookRepo := postgresql.NewBooks(database)
 
-	s := server.NewServer(authorRepo, bookRepo)
+	a := app.NewApp(authorRepo, bookRepo)
 	router := mux.NewRouter()
-	routers.CreateAuthorRouter(router, s)
-	routers.CreateBookSubRouter(router, *s)
+	routers.CreateAuthorRouter(router, a)
+	routers.CreateBookSubRouter(router, a)
 	http.Handle("/", router)
 
 	if err := http.ListenAndServe(port, nil); err != nil {

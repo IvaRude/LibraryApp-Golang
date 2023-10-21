@@ -3,7 +3,7 @@ package postgresql
 import (
 	"context"
 	"database/sql"
-	"homework-3/internal/pkg/repository"
+	"homework-3/internal/pkg/models"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -56,7 +56,7 @@ func TestAdd(t *testing.T) {
 	t.Parallel()
 	var (
 		ctx    = context.Background()
-		author = &repository.Author{Name: "Name"}
+		author = &models.Author{Name: "Name"}
 	)
 
 	t.Run("success", func(t *testing.T) {
@@ -114,7 +114,7 @@ func TestUpdate(t *testing.T) {
 	t.Parallel()
 	var (
 		ctx    = context.Background()
-		author = &repository.Author{Name: "Name", Id: 1}
+		author = &models.Author{Name: "Name", Id: 1}
 	)
 
 	t.Run("success", func(t *testing.T) {

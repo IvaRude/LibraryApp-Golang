@@ -3,16 +3,15 @@ package postgresql
 import (
 	"testing"
 
+	"homework-3/internal/pkg/app"
 	mock_database "homework-3/internal/pkg/db/mocks"
-
-	"homework-3/internal/pkg/repository"
 
 	"github.com/golang/mock/gomock"
 )
 
 type authorsRepoFixture struct {
 	ctrl   *gomock.Controller
-	repo   repository.AuthorsRepo
+	repo   app.AuthorsRepo
 	mockDb *mock_database.MockDBops
 }
 
