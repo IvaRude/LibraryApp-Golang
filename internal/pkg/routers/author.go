@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -22,7 +23,17 @@ type UpdateAuthorRequest struct {
 
 func CreateAuthorRouter(router *mux.Router, libraryApp LibraryApp) *mux.Router {
 	router.HandleFunc("/author", func(w http.ResponseWriter, req *http.Request) {
-		updateAuthorData, status := parseUpdateAuthorRequest(req)
+		body, err := io.ReadAll(req.Body)
+		if err != nil {
+			AnswerError(w, http.StatusInternalServerError)
+			return
+		}
+		if handlerMessage, err := BuildHandlerMessage(body, "Author", req.Method); err != nil {
+			log.Print(err)
+		} else {
+			libraryApp.SendMessage(handlerMessage)
+		}
+		updateAuthorData, status := parseUpdateAuthorRequest(body)
 		if status != http.StatusOK {
 			AnswerError(w, status)
 			return
@@ -73,13 +84,9 @@ func CreateAuthorRouter(router *mux.Router, libraryApp LibraryApp) *mux.Router {
 	return router
 }
 
-func parseUpdateAuthorRequest(req *http.Request) (*UpdateAuthorRequest, StatusInt) {
-	body, err := io.ReadAll(req.Body)
-	if err != nil {
-		return nil, http.StatusBadRequest
-	}
+func parseUpdateAuthorRequest(body []byte) (*UpdateAuthorRequest, StatusInt) {
 	var unm UpdateAuthorRequest
-	if err = json.Unmarshal(body, &unm); err != nil {
+	if err := json.Unmarshal(body, &unm); err != nil {
 		return nil, http.StatusBadRequest
 	}
 	return &unm, http.StatusOK

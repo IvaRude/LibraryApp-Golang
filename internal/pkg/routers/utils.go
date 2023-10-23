@@ -2,8 +2,11 @@ package routers
 
 import (
 	"context"
+	"encoding/json"
+	"homework-3/internal/pkg/models"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -18,6 +21,8 @@ type LibraryApp interface {
 
 	CreateBook(ctx context.Context, updateBookData *UpdateBookRequest) StatusInt
 	GetBook(ctx context.Context, id int64) ([]byte, StatusInt)
+
+	SendMessage(mes *models.HandlerMessage) error
 }
 
 func ParseID(req *http.Request) (int64, StatusInt) {
@@ -30,4 +35,14 @@ func ParseID(req *http.Request) (int64, StatusInt) {
 		return 0, http.StatusBadRequest
 	}
 	return idInt, http.StatusOK
+}
+
+func BuildHandlerMessage(body []byte, eventType string, method string) (*models.HandlerMessage, error) {
+	var item models.Item
+	err := json.Unmarshal(body, &item)
+	if err != nil {
+		return nil, err
+	}
+	request := models.Request{Method: method, Body: item}
+	return &models.HandlerMessage{Timestamp: time.Now(), Req: request, EventType: eventType}, nil
 }
