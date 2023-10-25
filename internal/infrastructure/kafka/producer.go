@@ -1,3 +1,5 @@
+//go:generate mockgen -source ./producer.go -destination=./mocks/producer.go -package=mock_producer
+
 package kafka
 
 import (
@@ -6,6 +8,13 @@ import (
 	"github.com/IBM/sarama"
 	"github.com/pkg/errors"
 )
+
+type KafkaProducer interface {
+	SendSyncMessage(message *sarama.ProducerMessage) (partition int32, offset int64, err error)
+	SendSyncMessages(messages []*sarama.ProducerMessage) error
+	SendAsyncMessage(message *sarama.ProducerMessage)
+	Close() error
+}
 
 type Producer struct {
 	brokers       []string

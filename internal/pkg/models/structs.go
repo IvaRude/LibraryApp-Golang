@@ -24,7 +24,7 @@ type Item struct {
 
 type Request struct {
 	Method string
-	Body   Item
+	Body   string
 }
 
 type HandlerMessage struct {

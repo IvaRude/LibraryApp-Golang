@@ -62,6 +62,11 @@ func CreateAuthorRouter(router *mux.Router, libraryApp LibraryApp) *mux.Router {
 			AnswerError(w, status)
 			return
 		}
+		if handlerMessage, err := BuildHandlerMessage([]byte{}, "Author", req.Method); err != nil {
+			log.Print(err)
+		} else {
+			libraryApp.SendMessage(handlerMessage)
+		}
 		switch req.Method {
 		case http.MethodGet:
 			authorJson, status := libraryApp.GetAuthor(req.Context(), id)

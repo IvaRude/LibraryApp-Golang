@@ -3,6 +3,7 @@ package routers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"homework-3/internal/pkg/models"
 	"net/http"
 	"strconv"
@@ -38,11 +39,16 @@ func ParseID(req *http.Request) (int64, StatusInt) {
 }
 
 func BuildHandlerMessage(body []byte, eventType string, method string) (*models.HandlerMessage, error) {
-	var item models.Item
-	err := json.Unmarshal(body, &item)
-	if err != nil {
-		return nil, err
+	var request models.Request
+	if len(body) > 0 {
+		var item models.Item
+		err := json.Unmarshal(body, &item)
+		if err != nil {
+			return nil, err
+		}
+		request = models.Request{Method: method, Body: fmt.Sprint(item)}
+	} else {
+		request = models.Request{Method: method, Body: ""}
 	}
-	request := models.Request{Method: method, Body: item}
 	return &models.HandlerMessage{Timestamp: time.Now(), Req: request, EventType: eventType}, nil
 }

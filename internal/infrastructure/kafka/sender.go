@@ -9,11 +9,11 @@ import (
 )
 
 type KafkaSender struct {
-	producer *Producer
+	producer KafkaProducer
 	topic    string
 }
 
-func NewKafkaSender(producer *Producer, topic string) *KafkaSender {
+func NewKafkaSender(producer KafkaProducer, topic string) *KafkaSender {
 	return &KafkaSender{
 		producer,
 		topic,
@@ -43,8 +43,8 @@ func (s *KafkaSender) SendMessage(message *models.HandlerMessage) error {
 	partition, offset, err := s.producer.SendSyncMessage(kafkaMsg)
 
 	if err != nil {
-		fmt.Println("Send message connector error", err)
-		return err
+		fmt.Println("Send message connector error", KafkaSendMessageError)
+		return KafkaSendMessageError
 	}
 
 	fmt.Println("Partition: ", partition, " Offset: ", offset)
