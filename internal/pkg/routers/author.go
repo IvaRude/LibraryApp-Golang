@@ -3,6 +3,7 @@ package routers
 import (
 	"encoding/json"
 	"fmt"
+	"homework-3/internal/infrastructure"
 	"io"
 	"log"
 	"net/http"
@@ -21,7 +22,7 @@ type UpdateAuthorRequest struct {
 	Id int64 `json:"id"`
 }
 
-func CreateAuthorRouter(router *mux.Router, libraryApp LibraryApp) *mux.Router {
+func CreateAuthorRouter(router *mux.Router, libraryApp LibraryApp, sender infrastructure.Sender) *mux.Router {
 	router.HandleFunc("/author", func(w http.ResponseWriter, req *http.Request) {
 		body, err := io.ReadAll(req.Body)
 		if err != nil {
@@ -31,7 +32,7 @@ func CreateAuthorRouter(router *mux.Router, libraryApp LibraryApp) *mux.Router {
 		if handlerMessage, err := BuildHandlerMessage(body, "Author", req.Method); err != nil {
 			log.Print(err)
 		} else {
-			libraryApp.SendMessage(handlerMessage)
+			sender.SendMessage(handlerMessage)
 		}
 		updateAuthorData, status := parseUpdateAuthorRequest(body)
 		if status != http.StatusOK {
@@ -65,7 +66,7 @@ func CreateAuthorRouter(router *mux.Router, libraryApp LibraryApp) *mux.Router {
 		if handlerMessage, err := BuildHandlerMessage([]byte{}, "Author", req.Method); err != nil {
 			log.Print(err)
 		} else {
-			libraryApp.SendMessage(handlerMessage)
+			sender.SendMessage(handlerMessage)
 		}
 		switch req.Method {
 		case http.MethodGet:

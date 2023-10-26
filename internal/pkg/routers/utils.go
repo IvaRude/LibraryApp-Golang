@@ -22,8 +22,6 @@ type LibraryApp interface {
 
 	CreateBook(ctx context.Context, updateBookData *UpdateBookRequest) StatusInt
 	GetBook(ctx context.Context, id int64) ([]byte, StatusInt)
-
-	SendMessage(mes *models.HandlerMessage) error
 }
 
 func ParseID(req *http.Request) (int64, StatusInt) {

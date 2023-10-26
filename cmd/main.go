@@ -41,12 +41,12 @@ func main() {
 
 	sender := kafka.NewKafkaSender(producer, "library")
 
-	a := app.NewApp(authorRepo, bookRepo, sender)
+	a := app.NewApp(authorRepo, bookRepo)
 
-	go consumerStart(brokers, a)
+	go consumerStart(brokers)
 
 	router := mux.NewRouter()
-	routers.CreateAuthorRouter(router, a)
+	routers.CreateAuthorRouter(router, a, sender)
 	routers.CreateBookSubRouter(router, a)
 	http.Handle("/", router)
 
@@ -55,7 +55,7 @@ func main() {
 	}
 }
 
-func consumerStart(brokers []string, a *app.App) {
+func consumerStart(brokers []string) {
 	topic := "library"
 	kafkaConsumer, err := kafka.NewConsumer(brokers)
 	if err != nil {
@@ -75,11 +75,11 @@ func consumerStart(brokers []string, a *app.App) {
 		},
 	}
 
-	a.MessageReceiver = kafka.NewReceiver(kafkaConsumer, handlers)
+	messageReceiver := kafka.NewReceiver(kafkaConsumer, handlers)
 
 	// При условии одного инстанса подходит идеально
 	// payments.StartConsume("payments")
-	err = a.MessageReceiver.Subscribe(topic)
+	err = messageReceiver.Subscribe(topic)
 	if err != nil {
 		fmt.Println("Subscribe error ", err)
 	}
