@@ -20,19 +20,6 @@ func NewKafkaSender(producer KafkaProducer, topic string) *KafkaSender {
 	}
 }
 
-func (s *KafkaSender) SendAsyncMessage(message *models.HandlerMessage) error {
-	kafkaMsg, err := s.buildMessage(message)
-	if err != nil {
-		fmt.Println("Send message marshal error", err)
-		return err
-	}
-
-	s.producer.SendAsyncMessage(kafkaMsg)
-
-	fmt.Println("Send async message with key:", kafkaMsg.Key)
-	return nil
-}
-
 func (s *KafkaSender) SendMessage(message *models.HandlerMessage) error {
 	kafkaMsg, err := s.buildMessage(message)
 	if err != nil {
@@ -48,32 +35,6 @@ func (s *KafkaSender) SendMessage(message *models.HandlerMessage) error {
 	}
 
 	fmt.Println("Partition: ", partition, " Offset: ", offset)
-	return nil
-}
-
-func (s *KafkaSender) SendMessages(messages []*models.HandlerMessage) error {
-	var kafkaMsg []*sarama.ProducerMessage
-	var message *sarama.ProducerMessage
-	var err error
-
-	for _, m := range messages {
-		message, err = s.buildMessage(m)
-		kafkaMsg = append(kafkaMsg, message)
-
-		if err != nil {
-			fmt.Println("Send message marshal error", err)
-			return err
-		}
-	}
-
-	err = s.producer.SendSyncMessages(kafkaMsg)
-
-	if err != nil {
-		fmt.Println("Send message connector error", err)
-		return err
-	}
-
-	fmt.Println("Send messages count:", len(messages))
 	return nil
 }
 

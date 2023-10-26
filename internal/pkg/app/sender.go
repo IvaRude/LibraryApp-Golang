@@ -6,9 +6,7 @@ import (
 )
 
 type Sender interface {
-	SendAsyncMessage(message *models.HandlerMessage) error
 	SendMessage(message *models.HandlerMessage) error
-	SendMessages(messages []*models.HandlerMessage) error
 }
 
 func (a *App) SendMessage(mes *models.HandlerMessage) error {
