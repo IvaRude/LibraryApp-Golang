@@ -20,7 +20,7 @@ func NewConsumer(brokers []string) (*Consumer, error) {
 		sarama.OffsetNewest - получаем только новые сообщений, те, которые уже были игнорируются
 		sarama.OffsetOldest - читаем все с самого начала
 	*/
-	config.Consumer.Offsets.Initial = sarama.OffsetOldest
+	config.Consumer.Offsets.Initial = sarama.OffsetNewest
 
 	consumer, err := sarama.NewConsumer(brokers, config)
 

@@ -1,4 +1,4 @@
-//go:generate mockgen -source ./producer.go -destination=./mocks/producer.go -package=mock_producer
+//go:generate mockgen -source ./producer.go -destination=./mocks/producer/producer.go -package=mock_producer
 
 package kafka
 

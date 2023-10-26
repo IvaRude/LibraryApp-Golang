@@ -2,19 +2,17 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"homework-3/config"
 	"homework-3/internal/infrastructure/kafka"
+	receiverhandlers "homework-3/internal/infrastructure/kafka/receiver_handlers"
 	"homework-3/internal/pkg/app"
 	"homework-3/internal/pkg/db"
-	"homework-3/internal/pkg/models"
 	"homework-3/internal/pkg/repository/postgresql"
 	"homework-3/internal/pkg/routers"
 	"log"
 	"net/http"
 
-	"github.com/IBM/sarama"
 	"github.com/gorilla/mux"
 )
 
@@ -39,11 +37,12 @@ func main() {
 	}
 	defer producer.Close()
 
-	sender := kafka.NewKafkaSender(producer, "library")
+	topic := "library"
+	sender := kafka.NewKafkaSender(producer, topic)
 
 	a := app.NewApp(authorRepo, bookRepo)
 
-	go consumerStart(brokers)
+	go kafkaReceiverStart(brokers, topic)
 
 	router := mux.NewRouter()
 	routers.CreateAuthorRouter(router, a, sender)
@@ -55,30 +54,20 @@ func main() {
 	}
 }
 
-func consumerStart(brokers []string) {
-	topic := "library"
+func kafkaReceiverStart(brokers []string, topic string) {
 	kafkaConsumer, err := kafka.NewConsumer(brokers)
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	// обработчики по каждому из топиков
-	handlers := map[string]kafka.HandleFunc{
-		topic: func(message *sarama.ConsumerMessage) {
-			mes := models.HandlerMessage{}
-			err = json.Unmarshal(message.Value, &mes)
-			if err != nil {
-				fmt.Println("Consumer error", err)
-			}
-
-			fmt.Println("Received Key: ", string(message.Key), " Value: ", mes)
-		},
+	handlers := map[string]kafka.KafkaReceiverHandler{
+		topic: receiverhandlers.NewStdoutKafkaReceiverHandler(),
 	}
 
 	messageReceiver := kafka.NewReceiver(kafkaConsumer, handlers)
 
 	// При условии одного инстанса подходит идеально
-	// payments.StartConsume("payments")
 	err = messageReceiver.Subscribe(topic)
 	if err != nil {
 		fmt.Println("Subscribe error ", err)

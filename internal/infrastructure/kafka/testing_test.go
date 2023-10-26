@@ -3,7 +3,7 @@ package kafka
 import (
 	"testing"
 
-	mock_producer "homework-3/internal/infrastructure/kafka/mocks"
+	mock_producer "homework-3/internal/infrastructure/kafka/mocks/producer"
 
 	"github.com/golang/mock/gomock"
 )

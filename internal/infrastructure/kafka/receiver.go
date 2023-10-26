@@ -2,7 +2,7 @@ package kafka
 
 import (
 	"errors"
-	"fmt"
+	"log"
 
 	"github.com/IBM/sarama"
 )
@@ -11,10 +11,10 @@ type HandleFunc func(message *sarama.ConsumerMessage)
 
 type KafkaReceiver struct {
 	consumer *Consumer
-	handlers map[string]HandleFunc
+	handlers map[string]KafkaReceiverHandler
 }
 
-func NewReceiver(consumer *Consumer, handlers map[string]HandleFunc) *KafkaReceiver {
+func NewReceiver(consumer *Consumer, handlers map[string]KafkaReceiverHandler) *KafkaReceiver {
 	return &KafkaReceiver{
 		consumer: consumer,
 		handlers: handlers,
@@ -22,7 +22,7 @@ func NewReceiver(consumer *Consumer, handlers map[string]HandleFunc) *KafkaRecei
 }
 
 func (r *KafkaReceiver) Subscribe(topic string) error {
-	handler, ok := r.handlers[topic]
+	receiverHandler, ok := r.handlers[topic]
 
 	if !ok {
 		return errors.New("can not find handler")
@@ -53,9 +53,10 @@ func (r *KafkaReceiver) Subscribe(topic string) error {
 
 		go func(pc sarama.PartitionConsumer, partition int32) {
 			for message := range pc.Messages() {
-				handler(message)
-				fmt.Println("Read Topic: ", topic, " Partition: ", partition, " Offset: ", message.Offset)
-				fmt.Println("Received Key: ", string(message.Key), " Value: ", string(message.Value))
+				err = receiverHandler.Handle(message)
+				if err != nil {
+					log.Print(err)
+				}
 			}
 		}(pc, partition)
 	}
